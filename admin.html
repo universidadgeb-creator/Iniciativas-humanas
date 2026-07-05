@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — GEB Iniciativas</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#0B2545;color:#F5F8FF;min-height:100vh}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-box{background:#0e2d5e;border:.5px solid rgba(196,155,76,.3);border-radius:12px;padding:40px 36px;width:340px;text-align:center}
+.login-box h1{font-size:22px;font-weight:400;color:#C49B4C;margin-bottom:8px}
+.login-box p{font-size:13px;color:rgba(245,248,255,.5);margin-bottom:28px}
+.login-box input{width:100%;padding:10px 14px;background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.15);border-radius:6px;color:#F5F8FF;font-size:14px;margin-bottom:14px;outline:none}
+.login-box input:focus{border-color:#C49B4C}
+.btn-login{width:100%;padding:11px;background:#C49B4C;color:#091E3A;font-size:14px;font-weight:600;border:none;border-radius:6px;cursor:pointer}
+.btn-login:hover{background:#D4AB5C}
+.err{font-size:12px;color:#f87171;margin-top:8px;display:none}
+#app{display:none}
+.topbar{background:#091E3A;border-bottom:.5px solid rgba(196,155,76,.25);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+.topbar .logo{font-size:14px;font-weight:500;color:#C49B4C;letter-spacing:.1em}
+.topbar-btns{display:flex;gap:10px}
+.btn-save{padding:8px 18px;background:#C49B4C;color:#091E3A;font-size:13px;font-weight:600;border:none;border-radius:5px;cursor:pointer}
+.btn-save:hover{background:#D4AB5C}
+.btn-reset{padding:8px 14px;background:transparent;color:rgba(245,248,255,.4);font-size:12px;border:.5px solid rgba(255,255,255,.1);border-radius:5px;cursor:pointer}
+.btn-reset:hover{color:#f87171;border-color:#f87171}
+.saved-msg{font-size:12px;color:#4ade80;opacity:0;transition:opacity .3s}
+.tabs{display:flex;border-bottom:.5px solid rgba(255,255,255,.1);padding:0 28px;background:#091E3A;overflow-x:auto;gap:0}
+.tab{padding:11px 16px;font-size:13px;color:rgba(245,248,255,.4);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.15s}
+.tab.active{color:#C49B4C;border-bottom-color:#C49B4C}
+.tab:hover{color:rgba(245,248,255,.75)}
+.panel{display:none;padding:24px 28px;max-width:860px}
+.panel.active{display:block}
+.sec{background:rgba(255,255,255,.03);border:.5px solid rgba(255,255,255,.09);border-radius:10px;padding:18px 22px;margin-bottom:16px}
+.sec-title{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#C49B4C;margin-bottom:14px;padding-bottom:8px;border-bottom:.5px solid rgba(196,155,76,.12)}
+.f{margin-bottom:11px}
+.f label{display:block;font-size:11px;color:rgba(245,248,255,.4);margin-bottom:3px}
+.f input,.f textarea{width:100%;padding:7px 10px;background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.1);border-radius:5px;color:#F5F8FF;font-size:13px;outline:none;transition:border .15s;font-family:inherit}
+.f input:focus,.f textarea:focus{border-color:#C49B4C}
+.f textarea{resize:vertical;min-height:55px;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.conv-block{border:.5px solid rgba(196,155,76,.15);border-radius:8px;padding:14px 16px;margin-bottom:12px;background:rgba(196,155,76,.02)}
+.conv-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#C49B4C;margin-bottom:10px}
+/* Toggle de visibilidad */
+.tg-group{margin-bottom:18px}
+.tg-group-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,248,255,.3);margin-bottom:8px}
+.tg-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:.5px solid rgba(255,255,255,.05);font-size:13px;color:rgba(245,248,255,.65)}
+.tg-row:last-child{border-bottom:none}
+.toggle{position:relative;width:38px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:20px;cursor:pointer;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:rgba(245,248,255,.4);border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:#C49B4C}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px);background:#091E3A}
+.hint{font-size:10px;color:rgba(245,248,255,.25);margin-top:3px}
+@media(max-width:600px){.row2{grid-template-columns:1fr}.panel{padding:16px}}
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <h1>GEB · Admin</h1>
+    <p>Ingresa la contraseña para continuar</p>
+    <input type="password" id="pwInput" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-login" onclick="doLogin()">Entrar</button>
+    <div class="err" id="loginErr">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <span class="logo">⚙ GEB · Admin</span>
+    <div class="topbar-btns">
+      <span class="saved-msg" id="savedMsg">✓ Guardado</span>
+      <button class="btn-reset" onclick="resetAll()">Restaurar defaults</button>
+      <button class="btn-save" onclick="saveAll()">Guardar cambios</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('home')">Home</div>
+    <div class="tab" onclick="showTab('bienestar')">Bienestar</div>
+    <div class="tab" onclick="showTab('comunidad')">Comunidad</div>
+    <div class="tab" onclick="showTab('movilidad')">Movilidad</div>
+    <div class="tab" onclick="showTab('habilidades')">Habilidades</div>
+    <div class="tab" onclick="showTab('visibilidad')">Visibilidad</div>
+  </div>
+
+  <!-- HOME -->
+  <div class="panel active" id="panel-home">
+    <div class="sec">
+      <div class="sec-title">Hero</div>
+      <div class="f"><label>Titular</label><textarea data-key="home.headline" rows="2">Conoce nuestras &lt;em&gt;Iniciativas&lt;/em&gt;&lt;br&gt;de empresa humana.</textarea></div>
+      <div class="f"><label>Descripción</label><textarea data-key="home.desc">Invitamos a cada persona a explorar sus propios llamados, y a la vez a escuchar con apertura el camino del otro. Porque la sabiduría no es propiedad individual, es un espacio de cocreación.</textarea></div>
+      <div class="f"><label>Botón CTA</label><input data-key="home.cta" value="Conocer las iniciativas"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Estadísticas</div>
+      <div class="row2">
+        <div class="f"><label>Número 1</label><input data-key="home.stat1n" value="13"></div>
+        <div class="f"><label>Etiqueta 1</label><input data-key="home.stat1l" value="Iniciativas"></div>
+        <div class="f"><label>Número 2</label><input data-key="home.stat2n" value="4"></div>
+        <div class="f"><label>Etiqueta 2</label><input data-key="home.stat2l" value="Enfoques"></div>
+        <div class="f"><label>Número 3</label><input data-key="home.stat3n" value="100%"></div>
+        <div class="f"><label>Etiqueta 3</label><input data-key="home.stat3l" value="Para ti"></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Carrusel — Bienestar Integral</div>
+      <div class="f"><label>Título</label><input data-key="sl1.title" value="Bienestar&lt;br&gt;Integral"></div>
+      <div class="f"><label>Frase</label><textarea data-key="sl1.phrase">Tu bienestar es nuestra prioridad.&lt;br&gt;Cuídate por dentro y por fuera.</textarea></div>
+      <div class="f"><label>Iniciativas (separadas por coma)</label><input data-key="sl1.pills" value="Atención Psicológica,Bienestar Espiritual"></div>
+      <div class="f"><label>Texto botón</label><input data-key="sl1.btn" value="Ver iniciativas"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Carrusel — Impacto Comunitario</div>
+      <div class="f"><label>Título</label><input data-key="sl2.title" value="Impacto&lt;br&gt;Comunitario"></div>
+      <div class="f"><label>Frase</label><textarea data-key="sl2.phrase">Juntos podemos transformar&lt;br&gt;el mundo que nos rodea.</textarea></div>
+      <div class="f"><label>Iniciativas (separadas por coma)</label><input data-key="sl2.pills" value="Eco-Acción,Juguemos por una Causa,Nube Acton Academy"></div>
+      <div class="f"><label>Texto botón</label><input data-key="sl2.btn" value="Ver iniciativas"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Carrusel — Movilidad Social</div>
+      <div class="f"><label>Título</label><input data-key="sl3.title" value="Movilidad&lt;br&gt;Social"></div>
+      <div class="f"><label>Frase</label><textarea data-key="sl3.phrase">Tu crecimiento es el nuestro.&lt;br&gt;Aquí hay un camino para ti.</textarea></div>
+      <div class="f"><label>Iniciativas (separadas por coma)</label><input data-key="sl3.pills" value="Escuela GEB,Impulso GEB,Beca Educativa GEB"></div>
+      <div class="f"><label>Texto botón</label><input data-key="sl3.btn" value="Ver iniciativas"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Carrusel — Habilidades para la Vida</div>
+      <div class="f"><label>Título</label><input data-key="sl4.title" value="Habilidades&lt;br&gt;para la Vida"></div>
+      <div class="f"><label>Frase</label><textarea data-key="sl4.phrase">El conocimiento que adquieres hoy&lt;br&gt;transforma tu mañana.</textarea></div>
+      <div class="f"><label>Iniciativas (separadas por coma)</label><input data-key="sl4.pills" value="Aprender a Aprender,Educación Financiera,Biblioteca GEB"></div>
+      <div class="f"><label>Texto botón</label><input data-key="sl4.btn" value="Ver iniciativas"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Tarjetas de área (home)</div>
+      <div class="f"><label>Iniciativas — Bienestar</label><input data-key="ac1.pills" value="Atención Psicológica,Bienestar Espiritual"></div>
+      <div class="f"><label>Iniciativas — Comunidad</label><input data-key="ac2.pills" value="Eco-Acción,Juguemos por una Causa,Nube Acton Academy"></div>
+      <div class="f"><label>Iniciativas — Movilidad</label><input data-key="ac3.pills" value="Escuela GEB,Impulso GEB,Beca Educativa GEB"></div>
+      <div class="f"><label>Iniciativas — Habilidades</label><input data-key="ac4.pills" value="Aprender a Aprender,Educación Financiera,Biblioteca GEB"></div>
+    </div>
+  </div>
+
+  <!-- BIENESTAR -->
+  <div class="panel" id="panel-bienestar">
+    <div class="sec">
+      <div class="sec-title">Atención Psicológica</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="bv1.tag" value="Salud Mental"></div><div class="f"><label>Título</label><input data-key="bv1.title" value="Atención Psicológica"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="bv1.desc">Tu salud emocional importa tanto como la física. Por eso tenemos dos alternativas de acompañamiento psicológico profesional y confidencial, adaptadas a lo que necesitas.</textarea></div>
+      <div class="f"><label>Modalidad 1 — nombre</label><input data-key="bv1.mod1n" value="ELA · Terapia Breve"></div>
+      <div class="f"><label>Modalidad 1 — descripción</label><textarea data-key="bv1.mod1d">5 sesiones presenciales o virtuales de 45 minutos. Ideal para situaciones que requieren acompañamiento enfocado y de corto plazo.</textarea></div>
+      <div class="f"><label>Modalidad 2 — nombre</label><input data-key="bv1.mod2n" value="In-pulso 43 · Acompañamiento continuo"></div>
+      <div class="f"><label>Modalidad 2 — descripción</label><textarea data-key="bv1.mod2d">Citas según la temporalidad y frecuencia que necesitas, en modalidad presencial o virtual. Con costo preferencial para colaboradores GEB.</textarea></div>
+      <div class="row2"><div class="f"><label>Texto botón</label><input data-key="bv1.btn" value="Quiero inscribirme"></div><div class="f"><label>WhatsApp URL</label><input data-key="bv1.wa" value="https://wa.me/523316717233?text=Hola,%20me%20interesa%20la%20Atención%20Psicológica%20de%20GEB"></div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Bienestar Espiritual</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="bv2.tag" value="Espiritualidad"></div><div class="f"><label>Título</label><input data-key="bv2.title" value="Bienestar Espiritual"></div></div>
+      <div class="sec-title" style="margin-top:14px;font-size:9px">Retiro del Espíritu Santo</div>
+      <div class="row2"><div class="f"><label>Nombre</label><input data-key="bv2.r1name" value="Retiro del Espíritu Santo"></div><div class="f"><label>Caminantes</label><input data-key="bv2.r1num" value="95"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="bv2.r1desc">Una experiencia transformadora de varios días para reconectarte con tu propósito y con el Espíritu Santo.</textarea></div>
+      <div class="row2"><div class="f"><label>Texto botón</label><input data-key="bv2.r1btn" value="Quiero inscribirme"></div><div class="f"><label>WhatsApp URL</label><input data-key="bv2.r1wa" value="https://wa.me/5213351208042?text=Hola,%20me%20interesa%20el%20Retiro%20del%20Espiritu%20Santo%20en%20GEB"></div></div>
+      <div class="sec-title" style="margin-top:14px;font-size:9px">Camino de Santiago</div>
+      <div class="row2"><div class="f"><label>Nombre</label><input data-key="bv2.r2name" value="Camino de Santiago"></div><div class="f"><label>Caminantes</label><input data-key="bv2.r2num" value="12"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="bv2.r2desc">Una peregrinación de cientos de kilómetros que transforma el cuerpo, la mente y el espíritu. Una experiencia de vida irrepetible.</textarea></div>
+      <div class="row2"><div class="f"><label>Texto botón</label><input data-key="bv2.r2btn" value="Conocer requisitos"></div><div class="f"><label>WhatsApp URL</label><input data-key="bv2.r2wa" value="https://wa.me/5213351208042?text=Hola,%20me%20interesa%20el%20Camino%20de%20Santiago%20en%20GEB"></div></div>
+    </div>
+  </div>
+
+  <!-- COMUNIDAD -->
+  <div class="panel" id="panel-comunidad">
+    <div class="sec">
+      <div class="sec-title">Salvando Vidas</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="co1.tag" value="Donación sangre"></div><div class="f"><label>Título</label><input data-key="co1.title" value="Salvando Vidas"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="co1.desc">Ser donador de sangre es uno de los actos más poderosos que puedes hacer por otro ser humano. En GEB creemos que salvar vidas empieza desde adentro de la empresa. Únete a nuestra red, registra tu tipo de sangre y el mes en que harás guardia.</textarea></div>
+      <div class="row2"><div class="f"><label>Stat 1 — número</label><input data-key="co1.s1n" value="135"></div><div class="f"><label>Stat 1 — etiqueta</label><input data-key="co1.s1l" value="Donadores en la red GEB"></div><div class="f"><label>Stat 2 — número</label><input data-key="co1.s2n" value="+1"></div><div class="f"><label>Stat 2 — etiqueta</label><input data-key="co1.s2l" value="Vida en riesgo cada hora en México"></div></div>
+      <div class="row2"><div class="f"><label>Texto botón</label><input data-key="co1.btn" value="Quiero ser donador"></div><div class="f"><label>WhatsApp URL</label><input data-key="co1.wa" value="https://wa.me/523314112703?text=Hola,%20me%20interesa%20unirme%20a%20Salvando%20Vidas%20en%20GEB"></div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Nube, an Acton Academy</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="co2.tag" value="Educación con propósito"></div><div class="f"><label>Título</label><input data-key="co2.title" value="Nube, an Acton Academy"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="co2.desc" rows="4">Centro educativo que busca desarrollar niños y jóvenes con autonomía, pensamiento crítico y propósito. Forma parte de una red internacional, con más de 300 campus, en más de 30 países.</textarea></div>
+      <div class="row2"><div class="f"><label>Texto botón</label><input data-key="co2.btn" value="Me interesa"></div><div class="f"><label>WhatsApp URL</label><input data-key="co2.wa" value="https://wa.me/523334870809?text=Hola,%20quiero%20mas%20informacion%20de%20Nube%20soy%20colaborador%20GEB"></div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Juguemos por una Causa</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="co3.tag" value="Solidaridad"></div><div class="f"><label>Título</label><input data-key="co3.title" value="Juguemos por una Causa"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="co3.desc">Desde 2012 realizamos este evento anual solidario para apoyar a nuestros colaboradores en situación vulnerable.</textarea></div>
+      <div class="row2"><div class="f"><label>Stat 1 — número</label><input data-key="co3.s1n" value="$202,683"></div><div class="f"><label>Stat 1 — etiqueta</label><input data-key="co3.s1l" value="Recaudados en 2025"></div><div class="f"><label>Stat 2 — número</label><input data-key="co3.s2n" value="$405,366 "></div><div class="f"><label>Stat 2 — etiqueta</label><input data-key="co3.s2l" value="GEB duplica cada donación"></div></div>
+      <div class="row2"><div class="f"><label>Texto botón</label><input data-key="co3.btn" value="Próximamente Convocatoria 2026"></div><div class="f"><label>WhatsApp URL</label><input data-key="co3.wa" value="https://wa.me/523314112703?text=Hola,%20quiero%20participar%20en%20Juguemos%20por%20una%20Causa"></div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Eco-Acción</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="co4.tag" value="Medio Ambiente"></div><div class="f"><label>Título</label><input data-key="co4.title" value="Eco-Acción"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="co4.desc">En GEB iniciamos con lo básico pero poderoso: el reciclaje de papel y cartón. En cada sucursal encontrarás un cilindro de recolección. Un pequeño gesto que, multiplicado por todos, reduce nuestra huella de manera significativa.</textarea></div>
+      <div class="row2"><div class="f"><label>Stat 1 — número</label><input data-key="co4.s1n" value="~3 ton"></div><div class="f"><label>Stat 1 — etiqueta</label><input data-key="co4.s1l" value="Papel consumido el año pasado"></div><div class="f"><label>Stat 2 — número</label><input data-key="co4.s2n" value="95%"></div><div class="f"><label>Stat 2 — etiqueta</label><input data-key="co4.s2l" value="Terminó en la basura"></div></div>
+      <div class="row2"><div class="f"><label>Texto botón</label><input data-key="co4.btn" value="Quiero participar"></div><div class="f"><label>WhatsApp URL</label><input data-key="co4.wa" value="https://wa.me/523314112703?text=Hola,%20quiero%20saber%20mas%20sobre%20Eco-Acción%20en%20GEB"></div></div>
+    </div>
+  </div>
+
+  <!-- MOVILIDAD -->
+  <div class="panel" id="panel-movilidad">
+    <div class="sec">
+      <div class="sec-title">Escuela GEB</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="mv1.tag" value="Educación formal"></div><div class="f"><label>Título</label><input data-key="mv1.title" value="Escuela GEB"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="mv1.desc">No importa en qué punto quedaste. En GEB creemos que nunca es tarde para aprender. Termina tu primaria, secundaria o bachillerato con el apoyo de la empresa, en la modalidad que mejor se adapte a tu vida.</textarea></div>
+      <div class="f"><label>Modalidad 1 — nombre</label><input data-key="mv1.mod1n" value="Presencial · Con docente del INEA"></div>
+      <div class="f"><label>Modalidad 1 — descripción</label><textarea data-key="mv1.mod1d">Clases presenciales con una docente certificada. Aprende a tu ritmo con acompañamiento personalizado.</textarea></div>
+      <div class="f"><label>Modalidad 2 — nombre</label><input data-key="mv1.mod2n" value="Virtual · Universidad Virtual de Liverpool"></div>
+      <div class="f"><label>Modalidad 2 — descripción</label><textarea data-key="mv1.mod2d">Estudia desde donde estés, en los horarios que te convengan.</textarea></div>
+      <div class="row2"><div class="f"><label>Texto botón</label><input data-key="mv1.btn" value="Quiero inscribirme"></div><div class="f"><label>WhatsApp URL</label><input data-key="mv1.wa" value="https://wa.me/523314112703?text=Hola,%20me%20interesa%20la%20Escuela%20GEB"></div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Impulso GEB</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="mv2.tag" value="Desarrollo profesional"></div><div class="f"><label>Título</label><input data-key="mv2.title" value="Impulso GEB"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="mv2.desc">Impulso GEB promueve la movilidad social real de nuestros colaboradores, brindándoles herramientas técnicas y humanas para transformar su vida personal, profesional y familiar.</textarea></div>
+      <div class="row2"><div class="f"><label>Texto botón</label><input data-key="mv2.btn" value="Quiero participar"></div><div class="f"><label>WhatsApp URL</label><input data-key="mv2.wa" value="https://wa.me/523314112703?text=Hola,%20me%20interesa%20Impulso%20GEB"></div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Beca Educativa GEB — Convenios</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="mv3.tag" value="Convenios universitarios"></div><div class="f"><label>Título</label><input data-key="mv3.title" value="Beca Educativa GEB"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="mv3.desc">Convenios exclusivos con tres universidades para colaboradores y sus familias. Beneficios especiales, convenios en colegiaturas.</textarea></div>
+      <div class="row2"><div class="f"><label>Texto botón principal</label><input data-key="mv3.btn" value="Quiero más información"></div><div class="f"><label>WhatsApp URL</label><input data-key="mv3.wa" value="https://wa.me/523314112703?text=Hola,%20quiero%20mas%20informacion%20sobre%20Convenios%20universitarios%20GEB."></div></div>
+      <div class="conv-block">
+        <div class="conv-label">Universidad Virtual de Liverpool</div>
+        <div class="f"><label>Descripción de oferta</label><textarea data-key="cv1.desc">Programas en línea. Becas del 80% en licenciaturas, y del 70% en maestrías.</textarea></div>
+        <div class="f"><label>Carreras (separadas por coma)</label><input data-key="cv1.carreras" value="Administración,Ventas,Gestión financiera,Logística,entre otras"></div>
+        <div class="row2"><div class="f"><label>Texto botón presentación</label><input data-key="cv1.btn" value="Más información →"></div><div class="f"><label>URL presentación</label><input data-key="cv1.url" placeholder="https://drive.google.com/..."></div></div>
+        <p class="hint">El botón de presentación aparece automáticamente cuando pones una URL.</p>
+      </div>
+      <div class="conv-block">
+        <div class="conv-label">Utel</div>
+        <div class="f"><label>Descripción de oferta</label><textarea data-key="cv2.desc">Becas entre el 75% y el 80% para licenciaturas. Becas entre el 25% y el 70% para posgrados (maestrías y doctorados).</textarea></div>
+        <div class="f"><label>Carreras (separadas por coma)</label><input data-key="cv2.carreras" value="Contabilidad,Derecho,Ingenierías,Administración, entre otras"></div>
+        <div class="row2"><div class="f"><label>Texto botón presentación</label><input data-key="cv2.btn" value="Más información →"></div><div class="f"><label>URL presentación</label><input data-key="cv2.url" placeholder="https://drive.google.com/..."></div></div>
+      </div>
+      <div class="conv-block">
+        <div class="conv-label">Universidad Cuauhtémoc</div>
+        <div class="f"><label>Descripción de oferta</label><textarea data-key="cv3.desc">Oferta presencial. Becas de 25% para licenciaturas y posgrados.</textarea></div>
+        <div class="f"><label>Carreras (separadas por coma)</label><input data-key="cv3.carreras" value="Ingenierías,Arquitectura,Recursos Humaos,Derecho, entre otras"></div>
+        <div class="row2"><div class="f"><label>Texto botón presentación</label><input data-key="cv3.btn" value="Más información →"></div><div class="f"><label>URL presentación</label><input data-key="cv3.url" placeholder="https://drive.google.com/..."></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HABILIDADES -->
+  <div class="panel" id="panel-habilidades">
+    <div class="sec">
+      <div class="sec-title">Aprender a Aprender</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="hb1.tag" value="Workshops"></div><div class="f"><label>Título</label><input data-key="hb1.title" value="Aprender a Aprender"></div></div>
+      <div class="f"><label>Frase destacada</label><input data-key="hb1.phrase" value="¿De cuántos libros estás aprendiendo tú?"></div>
+      <div class="f"><label>Descripción</label><textarea data-key="hb1.desc">Cada mes exploramos juntos un libro best seller. No es un curso, es una experiencia de aprendizaje colectivo donde la información se convierte en acción el mismo día.</textarea></div>
+      <div class="f"><label>Libros (separados por coma — el último puede ir con "Próximamente:")</label><input data-key="hb1.libros" value="Hábitos Atómicos,El Efecto Compuesto,Cómo ganar amigos e influir sobre las personas,Próximamente: Psicología del dinero"></div>
+      <div class="row2"><div class="f"><label>Texto botón</label><input data-key="hb1.btn" value="Estoy interesado"></div><div class="f"><label>WhatsApp URL</label><input data-key="hb1.wa" value="https://wa.me/523316717233?text=Hola,%20me%20interesa%20Aprender%20a%20Aprender%20de%20GEB"></div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Educación Financiera</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="hb2.tag" value="Finanzas personales"></div><div class="f"><label>Título</label><input data-key="hb2.title" value="Educación Financiera"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="hb2.desc">A través de nuestro convenio con EduFin BBVA y nuestro Reto de Ahorro, te damos las herramientas para tomar decisiones financieras inteligentes y construir un futuro más sólido.</textarea></div>
+      <div class="f"><label>Reto — meta</label><input data-key="hb2.retometa" value="Meta: $10,000"></div>
+      <div class="f"><label>Reto — descripción</label><textarea data-key="hb2.retodesc">Un reto colectivo con dinámicas y premios. ¿Te unes al reto del próximo año?</textarea></div>
+      <div class="row2"><div class="f"><label>Texto botón reto</label><input data-key="hb2.retobtn" value="Inscribirme al próximo reto"></div><div class="f"><label>WhatsApp URL reto</label><input data-key="hb2.retowa" value="https://wa.me/523314112703?text=Hola,%20me%20interesa%20el%20Reto%20de%20Ahorro%20de%20GEB"></div></div>
+      <div class="f"><label>Masterclass — título</label><input data-key="hb2.mctitle" value="Estrategias de ahorro"></div>
+      <div class="f"><label>Masterclass — subtítulo</label><input data-key="hb2.mcsub" value='Sesión: "Estrategia de inversión"'></div>
+      <div class="f"><label>Masterclass — fecha</label><input data-key="hb2.mcfecha" value="Miércoles 8 de Julio· 13:00 hrs. (CDMX)"></div>
+      <div class="row2"><div class="f"><label>Texto botón masterclass</label><input data-key="hb2.mcbtn" value="Quiero participar"></div><div class="f"><label>WhatsApp URL masterclass</label><input data-key="hb2.mcwa" value="https://wa.me/523314112703?text=Hola,%20quiero%20conectarme%20a%20la%20masterclass%20de%20BBVA"></div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Biblioteca GEB</div>
+      <div class="row2"><div class="f"><label>Tag</label><input data-key="hb3.tag" value="Comunidad lectora"></div><div class="f"><label>Título</label><input data-key="hb3.title" value="Biblioteca GEB"></div></div>
+      <div class="f"><label>Descripción</label><textarea data-key="hb3.desc">Una iniciativa de la comunidad basada en confianza. Construyendo comunidad, un libro a la vez.</textarea></div>
+      <div class="f"><label>Modalidad Digital — nombre</label><input data-key="hb3.dname" value="Biblioteca Digital"></div>
+      <div class="f"><label>Modalidad Digital — descripción</label><textarea data-key="hb3.ddesc">Cientos de títulos disponibles en línea, acceso inmediato desde cualquier dispositivo.</textarea></div>
+      <div class="row2"><div class="f"><label>Texto botón digital</label><input data-key="hb3.dbtn" value="Ir a la biblioteca digital"></div><div class="f"><label>URL biblioteca digital</label><input data-key="hb3.durl" value="https://gebuniversity-biblio.netlify.app/"></div></div>
+      <div class="f"><label>Modalidad Física — nombre</label><input data-key="hb3.fname" value="Biblioteca Física"></div>
+      <div class="f"><label>Modalidad Física — descripción</label><textarea data-key="hb3.fdesc">Renta un libro del carrito comunitario que circula entre nuestros espacios.</textarea></div>
+      <div class="row2"><div class="f"><label>Texto botón físico</label><input data-key="hb3.fbtn" value="Quiero rentar un libro"></div><div class="f"><label>WhatsApp URL físico</label><input data-key="hb3.fwa" value="https://wa.me/523334884345?text=Hola,%20quiero%20rentar%20un%20libro"></div></div>
+    </div>
+  </div>
+
+  <!-- VISIBILIDAD -->
+  <div class="panel" id="panel-visibilidad">
+    <div class="sec">
+      <div class="sec-title">Activar / desactivar botones</div>
+      <p style="font-size:12px;color:rgba(245,248,255,.4);margin-bottom:20px">Desactiva un botón para que no aparezca en el sitio. El texto y URL se conservan.</p>
+
+      <div class="tg-group">
+        <div class="tg-group-label">Bienestar Integral</div>
+        <div class="tg-row"><span>Atención Psicológica</span><label class="toggle"><input type="checkbox" data-toggle="bv1.btn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Retiro del Espíritu Santo</span><label class="toggle"><input type="checkbox" data-toggle="bv2.r1btn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Camino de Santiago</span><label class="toggle"><input type="checkbox" data-toggle="bv2.r2btn" checked><span class="toggle-slider"></span></label></div>
+      </div>
+      <div class="tg-group">
+        <div class="tg-group-label">Impacto Comunitario</div>
+        <div class="tg-row"><span>Salvando Vidas</span><label class="toggle"><input type="checkbox" data-toggle="co1.btn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Nube, an Acton Academy</span><label class="toggle"><input type="checkbox" data-toggle="co2.btn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Juguemos por una Causa</span><label class="toggle"><input type="checkbox" data-toggle="co3.btn"><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Eco-Acción</span><label class="toggle"><input type="checkbox" data-toggle="co4.btn" checked><span class="toggle-slider"></span></label></div>
+      </div>
+      <div class="tg-group">
+        <div class="tg-group-label">Movilidad Social</div>
+        <div class="tg-row"><span>Escuela GEB</span><label class="toggle"><input type="checkbox" data-toggle="mv1.btn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Impulso GEB</span><label class="toggle"><input type="checkbox" data-toggle="mv2.btn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Beca Educativa GEB (principal)</span><label class="toggle"><input type="checkbox" data-toggle="mv3.btn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Convenio Liverpool — botón presentación</span><label class="toggle"><input type="checkbox" data-toggle="cv1.btn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Convenio Utel — botón presentación</span><label class="toggle"><input type="checkbox" data-toggle="cv2.btn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Convenio Cuauhtémoc — botón presentación</span><label class="toggle"><input type="checkbox" data-toggle="cv3.btn" checked><span class="toggle-slider"></span></label></div>
+      </div>
+      <div class="tg-group">
+        <div class="tg-group-label">Habilidades para la Vida</div>
+        <div class="tg-row"><span>Aprender a Aprender</span><label class="toggle"><input type="checkbox" data-toggle="hb1.btn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Educación Financiera — reto</span><label class="toggle"><input type="checkbox" data-toggle="hb2.retobtn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Educación Financiera — masterclass</span><label class="toggle"><input type="checkbox" data-toggle="hb2.mcbtn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Biblioteca Digital</span><label class="toggle"><input type="checkbox" data-toggle="hb3.dbtn" checked><span class="toggle-slider"></span></label></div>
+        <div class="tg-row"><span>Biblioteca Física</span><label class="toggle"><input type="checkbox" data-toggle="hb3.fbtn" checked><span class="toggle-slider"></span></label></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PASS = "universidad26";
+const STORE = "geb_edit";
+
+function doLogin(){
+  if(document.getElementById("pwInput").value === PASS){
+    document.getElementById("loginWrap").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    loadAll();
+  } else {
+    document.getElementById("loginErr").style.display = "block";
+  }
+}
+
+function showTab(name){
+  const names = ["home","bienestar","comunidad","movilidad","habilidades","visibilidad"];
+  document.querySelectorAll(".tab").forEach((t,i) => t.classList.toggle("active", names[i]===name));
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  document.getElementById("panel-"+name).classList.add("active");
+}
+
+function getData(){
+  try{ return JSON.parse(localStorage.getItem(STORE)||"{}"); } catch(e){ return {}; }
+}
+
+function loadAll(){
+  if(!localStorage.getItem('geb_edit')){localStorage.setItem('geb_edit',JSON.stringify({"home.headline": "Conoce nuestras <em>Iniciativas<\/em><br>de empresa humana.", "home.desc": "Invitamos a cada persona a explorar sus propios llamados, y a la vez a escuchar con apertura el camino del otro. Porque la sabiduría no es propiedad individual, es un espacio de cocreación.", "home.cta": "Conocer las iniciativas", "home.stat1n": "13", "home.stat1l": "Iniciativas", "home.stat2n": "4", "home.stat2l": "Enfoques", "home.stat3n": "100%", "home.stat3l": "Para ti", "sl1.title": "Bienestar<br>Integral", "sl1.phrase": "Tu bienestar es nuestra prioridad.<br>Cuídate por dentro y por fuera.", "sl1.pills": "Atención Psicológica,Bienestar Espiritual", "sl1.btn": "Ver iniciativas", "sl2.title": "Impacto<br>Comunitario", "sl2.phrase": "Juntos podemos transformar<br>el mundo que nos rodea.", "sl2.pills": "Eco-Acción,Juguemos por una Causa,Nube Acton Academy", "sl2.btn": "Ver iniciativas", "sl3.title": "Movilidad<br>Social", "sl3.phrase": "Tu crecimiento es el nuestro.<br>Aquí hay un camino para ti.", "sl3.pills": "Escuela GEB,Impulso GEB,Beca Educativa GEB", "sl3.btn": "Ver iniciativas", "sl4.title": "Habilidades<br>para la Vida", "sl4.phrase": "El conocimiento que adquieres hoy<br>transforma tu mañana.", "sl4.pills": "Aprender a Aprender,Educación Financiera,Biblioteca GEB", "sl4.btn": "Ver iniciativas", "ac1.pills": "Atención Psicológica,Bienestar Espiritual", "ac2.pills": "Eco-Acción,Juguemos por una Causa,Nube Acton Academy", "ac3.pills": "Escuela GEB,Impulso GEB,Beca Educativa GEB", "ac4.pills": "Aprender a Aprender,Educación Financiera,Biblioteca GEB", "bv1.tag": "Salud Mental", "bv1.title": "Atención Psicológica", "bv1.desc": "Tu salud emocional importa tanto como la física. Por eso tenemos dos alternativas de acompañamiento psicológico profesional y confidencial, adaptadas a lo que necesitas.", "bv1.mod1n": "ELA · Terapia Breve", "bv1.mod1d": "5 sesiones presenciales o virtuales de 45 minutos. Ideal para situaciones que requieren acompañamiento enfocado y de corto plazo.", "bv1.mod2n": "In-pulso 43 · Acompañamiento continuo", "bv1.mod2d": "Citas según la temporalidad y frecuencia que necesitas, en modalidad presencial o virtual. Con costo preferencial para colaboradores GEB.", "bv1.btn": "Quiero inscribirme", "bv1.wa": "https://wa.me/523316717233?text=Hola,%20me%20interesa%20la%20Atención%20Psicológica%20de%20GEB", "bv2.tag": "Espiritualidad", "bv2.title": "Bienestar Espiritual", "bv2.r1name": "Retiro del Espíritu Santo", "bv2.r1num": "95", "bv2.r1desc": "Una experiencia transformadora de varios días para reconectarte con tu propósito y con el Espíritu Santo.", "bv2.r1btn": "Quiero inscribirme", "bv2.r1wa": "https://wa.me/5213351208042?text=Hola,%20me%20interesa%20el%20Retiro%20del%20Espiritu%20Santo%20en%20GEB", "bv2.r2name": "Camino de Santiago", "bv2.r2num": "12", "bv2.r2desc": "Una peregrinación de cientos de kilómetros que transforma el cuerpo, la mente y el espíritu. Una experiencia de vida irrepetible.", "bv2.r2btn": "Conocer requisitos", "bv2.r2wa": "https://wa.me/5213351208042?text=Hola,%20me%20interesa%20el%20Camino%20de%20Santiago%20en%20GEB", "co1.tag": "Donación sangre", "co1.title": "Salvando Vidas", "co1.desc": "Ser donador de sangre es uno de los actos más poderosos que puedes hacer por otro ser humano. En GEB creemos que salvar vidas empieza desde adentro de la empresa. Únete a nuestra red, registra tu tipo de sangre y el mes en que harás guardia.", "co1.s1n": "135", "co1.s1l": "Donadores en la red GEB", "co1.s2n": "+1", "co1.s2l": "Vida en riesgo cada hora en México", "co1.btn": "Quiero ser donador", "co1.wa": "https://wa.me/523314112703?text=Hola,%20me%20interesa%20unirme%20a%20Salvando%20Vidas%20en%20GEB", "co2.tag": "Educación con propósito", "co2.title": "Nube, an Acton Academy", "co2.desc": "Centro educativo que busca desarrollar niños y jóvenes con autonomía, pensamiento crítico y propósito. Forma parte de una red internacional, con más de 300 campus, en más de 30 países.", "co2.btn": "Me interesa", "co2.wa": "https://wa.me/523334870809?text=Hola,%20quiero%20mas%20informacion%20de%20Nube%20soy%20colaborador%20GEB", "co3.tag": "Solidaridad", "co3.title": "Juguemos por una Causa", "co3.desc": "Desde 2012 realizamos este evento anual solidario para apoyar a nuestros colaboradores en situación vulnerable.", "co3.s1n": "$202,683", "co3.s1l": "Recaudados en 2025", "co3.s2n": "$405,366", "co3.s2l": "GEB duplica cada donación", "co3.btn": "Próximamente Convocatoria 2026", "co3.wa": "https://wa.me/523314112703?text=Hola,%20quiero%20participar%20en%20Juguemos%20por%20una%20Causa", "co4.tag": "Medio Ambiente", "co4.title": "Eco-Acción", "co4.desc": "En GEB iniciamos con lo básico pero poderoso: el reciclaje de papel y cartón. En cada sucursal encontrarás un cilindro de recolección. Un pequeño gesto que, multiplicado por todos, reduce nuestra huella de manera significativa.", "co4.s1n": "~3 ton", "co4.s1l": "Papel consumido el año pasado", "co4.s2n": "95%", "co4.s2l": "Terminó en la basura", "co4.btn": "Quiero participar", "co4.wa": "https://wa.me/523314112703?text=Hola,%20quiero%20saber%20mas%20sobre%20Eco-Acción%20en%20GEB", "mv1.tag": "Educación formal", "mv1.title": "Escuela GEB", "mv1.desc": "No importa en qué punto quedaste. En GEB creemos que nunca es tarde para aprender. Termina tu primaria, secundaria o bachillerato con el apoyo de la empresa, en la modalidad que mejor se adapte a tu vida.", "mv1.mod1n": "Presencial · Con docente del INEA", "mv1.mod1d": "Clases presenciales con una docente certificada. Aprende a tu ritmo con acompañamiento personalizado.", "mv1.mod2n": "Virtual · Universidad Virtual de Liverpool", "mv1.mod2d": "Estudia desde donde estés, en los horarios que te convengan.", "mv1.btn": "Quiero inscribirme", "mv1.wa": "https://wa.me/523314112703?text=Hola,%20me%20interesa%20la%20Escuela%20GEB", "mv2.tag": "Desarrollo profesional", "mv2.title": "Impulso GEB", "mv2.desc": "Impulso GEB promueve la movilidad social real de nuestros colaboradores, brindándoles herramientas técnicas y humanas para transformar su vida personal, profesional y familiar.", "mv2.btn": "Quiero participar", "mv2.wa": "https://wa.me/523314112703?text=Hola,%20me%20interesa%20Impulso%20GEB", "mv3.tag": "Convenios universitarios", "mv3.title": "Beca Educativa GEB", "mv3.desc": "Convenios exclusivos con tres universidades para colaboradores y sus familias. Beneficios especiales, convenios en colegiaturas.", "mv3.btn": "Quiero más información", "mv3.wa": "https://wa.me/523314112703?text=Hola,%20quiero%20mas%20informacion%20sobre%20Convenios%20universitarios%20GEB.", "cv1.desc": "Programas en línea. Becas del 80% en licenciaturas, y del 70% en maestrías.", "cv1.carreras": "Administración,Ventas,Gestión financiera,Logística,entre otras", "cv1.btn": "Más información →", "cv1.url": "https://drive.google.com/file/d/1ShByTsehuUOT02EQaQWLvLtlyNUkmaxz/view?usp=drive_link", "cv2.desc": "Becas entre el 75% y el 80% para licenciaturas. Becas entre el 25% y el 70% para posgrados (maestrías y doctorados).", "cv2.carreras": "Contabilidad,Derecho,Ingenierías,Administración, entre otras", "cv2.btn": "Más información →", "cv2.url": "https://drive.google.com/file/d/1DXz8kYOgQLBf98rTCqfLfrxxhwIBWe-f/view?usp=drive_link", "cv3.desc": "Oferta presencial. Becas de 25% para licenciaturas y posgrados.", "cv3.carreras": "Ingenierías,Arquitectura,Recursos Humanos,Derecho, entre otras", "cv3.btn": "Más información →", "cv3.url": "https://drive.google.com/file/d/1cio3dF6lqGudBnsVHHW7yNHKwVjW3K5T/view?usp=drive_link", "hb1.tag": "Workshops", "hb1.title": "Aprender a Aprender", "hb1.phrase": "¿De cuántos libros estás aprendiendo tú?", "hb1.desc": "Cada mes exploramos juntos un libro best seller. No es un curso, es una experiencia de aprendizaje colectivo donde la información se convierte en acción el mismo día.", "hb1.libros": "Hábitos Atómicos,El Efecto Compuesto,Cómo ganar amigos e influir sobre las personas,Próximamente: Psicología del dinero", "hb1.btn": "Estoy interesado", "hb1.wa": "https://wa.me/523316717233?text=Hola,%20me%20interesa%20Aprender%20a%20Aprender%20de%20GEB", "hb2.tag": "Finanzas personales", "hb2.title": "Educación Financiera", "hb2.desc": "A través de nuestro convenio con EduFin BBVA y nuestro Reto de Ahorro, te damos las herramientas para tomar decisiones financieras inteligentes y construir un futuro más sólido.", "hb2.retometa": "Meta: $10,000", "hb2.retodesc": "Un reto colectivo con dinámicas y premios. ¿Te unes al reto del próximo año?", "hb2.retobtn": "Inscribirme al próximo reto", "hb2.retowa": "https://wa.me/523314112703?text=Hola,%20me%20interesa%20el%20Reto%20de%20Ahorro%20de%20GEB", "hb2.mctitle": "Estrategias de ahorro", "hb2.mcsub": "Sesión: \"Colchón financiero\"", "hb2.mcfecha": "Miércoles 8 de Julio· 13:00 hrs. (CDMX)", "hb2.mcbtn": "Quiero participar", "hb2.mcwa": "https://wa.me/523314112703?text=Hola,%20quiero%20conectarme%20a%20la%20masterclass%20de%20BBVA", "hb3.tag": "Comunidad lectora", "hb3.title": "Biblioteca GEB", "hb3.desc": "Una iniciativa de la comunidad basada en confianza. Construyendo comunidad, un libro a la vez.", "hb3.dname": "Biblioteca Digital", "hb3.ddesc": "Cientos de títulos disponibles en línea, acceso inmediato desde cualquier dispositivo.", "hb3.dbtn": "Ir a la biblioteca digital", "hb3.durl": "https://gebuniversity-biblio.netlify.app/", "hb3.fname": "Biblioteca Física", "hb3.fdesc": "Renta un libro del carrito comunitario que circula entre nuestros espacios.", "hb3.fbtn": "Quiero rentar un libro", "hb3.fwa": "https://wa.me/523334884345?text=Hola,%20quiero%20rentar%20un%20libro"}));}
+
+  var _seed={"home.headline": "Conoce nuestras <em>Iniciativas<\/em><br>de empresa humana.", "home.desc": "Invitamos a cada persona a explorar sus propios llamados, y a la vez a escuchar con apertura el camino del otro. Porque la sabiduría no es propiedad individual, es un espacio de cocreación.", "home.cta": "Conocer las iniciativas", "home.stat1n": "13", "home.stat1l": "Iniciativas", "home.stat2n": "4", "home.stat2l": "Enfoques", "home.stat3n": "100%", "home.stat3l": "Para ti", "sl1.title": "Bienestar<br>Integral", "sl1.phrase": "Tu bienestar es nuestra prioridad.<br>Cuídate por dentro y por fuera.", "sl1.pills": "Atención Psicológica,Bienestar Espiritual", "sl1.btn": "Ver iniciativas", "sl2.title": "Impacto<br>Comunitario", "sl2.phrase": "Juntos podemos transformar<br>el mundo que nos rodea.", "sl2.pills": "Eco-Acción,Juguemos por una Causa,Nube Acton Academy", "sl2.btn": "Ver iniciativas", "sl3.title": "Movilidad<br>Social", "sl3.phrase": "Tu crecimiento es el nuestro.<br>Aquí hay un camino para ti.", "sl3.pills": "Escuela GEB,Impulso GEB,Beca Educativa GEB", "sl3.btn": "Ver iniciativas", "sl4.title": "Habilidades<br>para la Vida", "sl4.phrase": "El conocimiento que adquieres hoy<br>transforma tu mañana.", "sl4.pills": "Aprender a Aprender,Educación Financiera,Biblioteca GEB", "sl4.btn": "Ver iniciativas", "ac1.pills": "Atención Psicológica,Bienestar Espiritual", "ac2.pills": "Eco-Acción,Juguemos por una Causa,Nube Acton Academy", "ac3.pills": "Escuela GEB,Impulso GEB,Beca Educativa GEB", "ac4.pills": "Aprender a Aprender,Educación Financiera,Biblioteca GEB", "bv1.tag": "Salud Mental", "bv1.title": "Atención Psicológica", "bv1.desc": "Tu salud emocional importa tanto como la física. Por eso tenemos dos alternativas de acompañamiento psicológico profesional y confidencial, adaptadas a lo que necesitas.", "bv1.mod1n": "ELA · Terapia Breve", "bv1.mod1d": "5 sesiones presenciales o virtuales de 45 minutos. Ideal para situaciones que requieren acompañamiento enfocado y de corto plazo.", "bv1.mod2n": "In-pulso 43 · Acompañamiento continuo", "bv1.mod2d": "Citas según la temporalidad y frecuencia que necesitas, en modalidad presencial o virtual. Con costo preferencial para colaboradores GEB.", "bv1.btn": "Quiero inscribirme", "bv1.wa": "https://wa.me/523316717233?text=Hola,%20me%20interesa%20la%20Atención%20Psicológica%20de%20GEB", "bv2.tag": "Espiritualidad", "bv2.title": "Bienestar Espiritual", "bv2.r1name": "Retiro del Espíritu Santo", "bv2.r1num": "95", "bv2.r1desc": "Una experiencia transformadora de varios días para reconectarte con tu propósito y con el Espíritu Santo.", "bv2.r1btn": "Quiero inscribirme", "bv2.r1wa": "https://wa.me/5213351208042?text=Hola,%20me%20interesa%20el%20Retiro%20del%20Espiritu%20Santo%20en%20GEB", "bv2.r2name": "Camino de Santiago", "bv2.r2num": "12", "bv2.r2desc": "Una peregrinación de cientos de kilómetros que transforma el cuerpo, la mente y el espíritu. Una experiencia de vida irrepetible.", "bv2.r2btn": "Conocer requisitos", "bv2.r2wa": "https://wa.me/5213351208042?text=Hola,%20me%20interesa%20el%20Camino%20de%20Santiago%20en%20GEB", "co1.tag": "Donación sangre", "co1.title": "Salvando Vidas", "co1.desc": "Ser donador de sangre es uno de los actos más poderosos que puedes hacer por otro ser humano. En GEB creemos que salvar vidas empieza desde adentro de la empresa. Únete a nuestra red, registra tu tipo de sangre y el mes en que harás guardia.", "co1.s1n": "135", "co1.s1l": "Donadores en la red GEB", "co1.s2n": "+1", "co1.s2l": "Vida en riesgo cada hora en México", "co1.btn": "Quiero ser donador", "co1.wa": "https://wa.me/523314112703?text=Hola,%20me%20interesa%20unirme%20a%20Salvando%20Vidas%20en%20GEB", "co2.tag": "Educación con propósito", "co2.title": "Nube, an Acton Academy", "co2.desc": "Centro educativo que busca desarrollar niños y jóvenes con autonomía, pensamiento crítico y propósito. Forma parte de una red internacional, con más de 300 campus, en más de 30 países.", "co2.btn": "Me interesa", "co2.wa": "https://wa.me/523334870809?text=Hola,%20quiero%20mas%20informacion%20de%20Nube%20soy%20colaborador%20GEB", "co3.tag": "Solidaridad", "co3.title": "Juguemos por una Causa", "co3.desc": "Desde 2012 realizamos este evento anual solidario para apoyar a nuestros colaboradores en situación vulnerable.", "co3.s1n": "$202,683", "co3.s1l": "Recaudados en 2025", "co3.s2n": "$405,366 ", "co3.s2l": "GEB duplica cada donación", "co3.btn": "Próximamente Convocatoria 2026", "co3.wa": "https://wa.me/523314112703?text=Hola,%20quiero%20participar%20en%20Juguemos%20por%20una%20Causa", "co4.tag": "Medio Ambiente", "co4.title": "Eco-Acción", "co4.desc": "En GEB iniciamos con lo básico pero poderoso: el reciclaje de papel y cartón. En cada sucursal encontrarás un cilindro de recolección. Un pequeño gesto que, multiplicado por todos, reduce nuestra huella de manera significativa.", "co4.s1n": "~3 ton", "co4.s1l": "Papel consumido el año pasado", "co4.s2n": "95%", "co4.s2l": "Terminó en la basura", "co4.btn": "Quiero participar", "co4.wa": "https://wa.me/523314112703?text=Hola,%20quiero%20saber%20mas%20sobre%20Eco-Acción%20en%20GEB", "mv1.tag": "Educación formal", "mv1.title": "Escuela GEB", "mv1.desc": "No importa en qué punto quedaste. En GEB creemos que nunca es tarde para aprender. Termina tu primaria, secundaria o bachillerato con el apoyo de la empresa, en la modalidad que mejor se adapte a tu vida.", "mv1.mod1n": "Presencial · Con docente del INEA", "mv1.mod1d": "Clases presenciales con una docente certificada. Aprende a tu ritmo con acompañamiento personalizado.", "mv1.mod2n": "Virtual · Universidad Virtual de Liverpool", "mv1.mod2d": "Estudia desde donde estés, en los horarios que te convengan.", "mv1.btn": "Quiero inscribirme", "mv1.wa": "https://wa.me/523314112703?text=Hola,%20me%20interesa%20la%20Escuela%20GEB", "mv2.tag": "Desarrollo profesional", "mv2.title": "Impulso GEB", "mv2.desc": "Impulso GEB promueve la movilidad social real de nuestros colaboradores, brindándoles herramientas técnicas y humanas para transformar su vida personal, profesional y familiar.", "mv2.btn": "Quiero participar", "mv2.wa": "https://wa.me/523314112703?text=Hola,%20me%20interesa%20Impulso%20GEB", "mv3.tag": "Convenios universitarios", "mv3.title": "Beca Educativa GEB", "mv3.desc": "Convenios exclusivos con tres universidades para colaboradores y sus familias. Beneficios especiales, convenios en colegiaturas.", "mv3.btn": "Quiero más información", "mv3.wa": "https://wa.me/523314112703?text=Hola,%20quiero%20mas%20informacion%20sobre%20Convenios%20universitarios%20GEB.", "cv1.desc": "Programas en línea. Becas del 80% en licenciaturas, y del 70% en maestrías.", "cv1.carreras": "Administración,Ventas,Gestión financiera,Logística,entre otras", "cv1.btn": "Más información →", "cv1.url": "https://drive.google.com/file/d/1ShByTsehuUOT02EQaQWLvLtlyNUkmaxz/view?usp=drive_link", "cv2.desc": "Becas entre el 75% y el 80% para licenciaturas. Becas entre el 25% y el 70% para posgrados (maestrías y doctorados).", "cv2.carreras": "Contabilidad,Derecho,Ingenierías,Administración, entre otras", "cv2.btn": "Más información →", "cv2.url": "https://drive.google.com/file/d/1DXz8kYOgQLBf98rTCqfLfrxxhwIBWe-f/view?usp=drive_link", "cv3.desc": "Oferta presencial. Becas de 25% para licenciaturas y posgrados.", "cv3.carreras": "Ingenierías,Arquitectura,Recursos Humaos,Derecho, entre otras", "cv3.btn": "Más información →", "cv3.url": "https://drive.google.com/file/d/1cio3dF6lqGudBnsVHHW7yNHKwVjW3K5T/view?usp=drive_link", "hb1.tag": "Workshops", "hb1.title": "Aprender a Aprender", "hb1.phrase": "¿De cuántos libros estás aprendiendo tú?", "hb1.desc": "Cada mes exploramos juntos un libro best seller. No es un curso, es una experiencia de aprendizaje colectivo donde la información se convierte en acción el mismo día.", "hb1.libros": "Hábitos Atómicos,El Efecto Compuesto,Cómo ganar amigos e influir sobre las personas,Próximamente: Psicología del dinero", "hb1.btn": "Estoy interesado", "hb1.wa": "https://wa.me/523316717233?text=Hola,%20me%20interesa%20Aprender%20a%20Aprender%20de%20GEB", "hb2.tag": "Finanzas personales", "hb2.title": "Educación Financiera", "hb2.desc": "A través de nuestro convenio con EduFin BBVA y nuestro Reto de Ahorro, te damos las herramientas para tomar decisiones financieras inteligentes y construir un futuro más sólido.", "hb2.retometa": "Meta: $10,000", "hb2.retodesc": "Un reto colectivo con dinámicas y premios. ¿Te unes al reto del próximo año?", "hb2.retobtn": "Inscribirme al próximo reto", "hb2.retowa": "https://wa.me/523314112703?text=Hola,%20me%20interesa%20el%20Reto%20de%20Ahorro%20de%20GEB", "hb2.mctitle": "Estrategias de ahorro", "hb2.mcsub": "Sesión: \"Colchón financiero\"", "hb2.mcfecha": "Miércoles 8 de Julio· 13:00 hrs. (CDMX)", "hb2.mcbtn": "Quiero participar", "hb2.mcwa": "https://wa.me/523314112703?text=Hola,%20quiero%20conectarme%20a%20la%20masterclass%20de%20BBVA", "hb3.tag": "Comunidad lectora", "hb3.title": "Biblioteca GEB", "hb3.desc": "Una iniciativa de la comunidad basada en confianza. Construyendo comunidad, un libro a la vez.", "hb3.dname": "Biblioteca Digital", "hb3.ddesc": "Cientos de títulos disponibles en línea, acceso inmediato desde cualquier dispositivo.", "hb3.dbtn": "Ir a la biblioteca digital", "hb3.durl": "https://gebuniversity-biblio.netlify.app/", "hb3.fname": "Biblioteca Física", "hb3.fdesc": "Renta un libro del carrito comunitario que circula entre nuestros espacios.", "hb3.fbtn": "Quiero rentar un libro", "hb3.fwa": "https://wa.me/523334884345?text=Hola,%20quiero%20rentar%20un%20libro", "hidden:bv1.btn": false, "hidden:bv2.r1btn": false, "hidden:bv2.r2btn": false, "hidden:co1.btn": false, "hidden:co2.btn": false, "hidden:co3.btn": true, "hidden:co4.btn": false, "hidden:mv1.btn": false, "hidden:mv2.btn": false, "hidden:mv3.btn": false, "hidden:cv1.btn": false, "hidden:cv2.btn": false, "hidden:cv3.btn": false, "hidden:hb1.btn": false, "hidden:hb2.retobtn": false, "hidden:hb2.mcbtn": false, "hidden:hb3.dbtn": false, "hidden:hb3.fbtn": false};
+  if(!localStorage.getItem('geb_edit')){localStorage.setItem('geb_edit',JSON.stringify(_seed));}
+
+  const data = getData();
+  // Cargar campos de texto
+  document.querySelectorAll("[data-key]").forEach(el => {
+    const k = el.getAttribute("data-key");
+    if(data[k] !== undefined) el.value = data[k];
+  });
+  // Cargar toggles
+  document.querySelectorAll("[data-toggle]").forEach(el => {
+    const k = el.getAttribute("data-toggle");
+    // hidden:key = true → oculto → checkbox desmarcado
+    if(data["hidden:"+k] !== undefined) el.checked = !data["hidden:"+k];
+  });
+}
+
+function saveAll(){
+  const data = getData();
+  // Guardar campos de texto
+  document.querySelectorAll("[data-key]").forEach(el => {
+    data[el.getAttribute("data-key")] = el.value;
+  });
+  // Guardar toggles (hidden:key = !checked)
+  document.querySelectorAll("[data-toggle]").forEach(el => {
+    data["hidden:"+el.getAttribute("data-toggle")] = !el.checked;
+  });
+  localStorage.setItem(STORE, JSON.stringify(data));
+  const msg = document.getElementById("savedMsg");
+  msg.style.opacity = "1";
+  setTimeout(() => msg.style.opacity = "0", 2000);
+}
+
+function resetAll(){
+  if(!confirm("¿Restaurar todos los textos a los valores originales? Los cambios no guardados se perderán.")) return;
+  localStorage.removeItem(STORE);
+  location.reload();
+}
+</script>
+</body>
+</html>
