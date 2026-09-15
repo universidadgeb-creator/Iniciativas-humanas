@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eventos — GEB</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>/* ── RESET & BASE ─────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:"DM Sans",sans-serif;background:#0B2545;color:#F5F8FF;overflow-x:hidden}
+
+/* ── NAVBAR ───────────────────────────────────────────────── */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 48px;height:68px;display:flex;align-items:center;justify-content:space-between;background:transparent;border-bottom:.5px solid transparent;transition:background .4s,border-color .4s,transform .35s}
+.navbar.scrolled{background:rgba(9,25,48,.96);backdrop-filter:blur(12px);border-bottom-color:rgba(196,155,76,.15)}
+.navbar.hidden{transform:translateY(-100%)}
+.navbar.visible{transform:translateY(0)}
+.nav-logo{display:flex;align-items:center;text-decoration:none}
+.nav-logo img{height:44px;width:auto;display:block}
+.nav-logo-text{font-size:14px;font-weight:500;color:#F5F8FF;letter-spacing:.05em;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:6px;list-style:none}
+.nav-links a{font-size:13px;font-weight:400;color:rgba(245,248,255,.7);text-decoration:none;padding:6px 14px;border-radius:100px;transition:color .2s,background .2s;white-space:nowrap}
+.nav-links a:hover,.nav-links a.active{color:#F5F8FF;background:rgba(255,255,255,.07)}
+.nav-links a.active{color:#C49B4C}
+.nav-toggle{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none}
+.nav-toggle span{display:block;width:22px;height:1.5px;background:rgba(245,248,255,.8);transition:transform .3s,opacity .3s}
+.nav-toggle.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.nav-toggle.open span:nth-child(2){opacity:0}
+.nav-toggle.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+@media(max-width:860px){
+  .navbar{padding:0 24px}
+  .nav-toggle{display:flex}
+  .nav-links{position:fixed;top:68px;left:0;right:0;background:rgba(9,25,48,.98);backdrop-filter:blur(12px);flex-direction:column;align-items:flex-start;padding:20px 24px 28px;gap:4px;border-bottom:.5px solid rgba(196,155,76,.15);transform:translateY(-110%);opacity:0;transition:transform .35s,opacity .3s;pointer-events:none}
+  .nav-links.open{transform:translateY(0);opacity:1;pointer-events:all}
+  .nav-links a{padding:10px 16px;width:100%;font-size:15px}
+}
+
+/* ── AREA PAGE HERO ───────────────────────────────────────── */
+.area-page-hero{position:relative;height:55vh;min-height:340px;display:flex;align-items:flex-end;padding:0 10% 60px;overflow:hidden}
+.area-page-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.area-page-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,37,69,1) 0%,rgba(9,30,58,.8) 40%,rgba(9,30,58,.25) 100%)}
+.area-page-hero-content{position:relative;z-index:2}
+.area-label-tag{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:#C49B4C;margin-bottom:12px;display:block}
+.area-title{font-family:"Cormorant Garamond",serif;font-size:clamp(36px,5vw,64px);font-weight:400;color:#F5F8FF;margin-bottom:14px;border-left:3px solid #C49B4C;padding-left:20px;line-height:1.1}
+.area-title em{font-style:italic;color:rgba(245,248,255,.5)}
+.area-phrase{font-size:15px;font-weight:300;font-style:italic;color:rgba(245,248,255,.42);padding-left:23px;line-height:1.7;max-width:560px}
+.back-link{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:rgba(245,248,255,.5);text-decoration:none;padding-left:23px;margin-bottom:20px;transition:color .2s}
+.back-link:hover{color:#C49B4C}
+@media(max-width:768px){
+  .area-page-hero{height:auto;min-height:280px;padding:80px 6% 40px}
+  .area-title{font-size:clamp(28px,7vw,44px)}
+}
+
+/* ── CARDS SECTION ────────────────────────────────────────── */
+.cards-section{background:#091E3A;padding:80px 10%}
+.cards-section:nth-of-type(even){background:#0B2545}
+.cards-grid{display:grid;gap:24px;justify-content:center;width:100%}
+.cards-grid.cols-2{grid-template-columns:repeat(2,minmax(0,480px))}
+.cards-grid.cols-2>*:last-child:nth-child(odd){grid-column:1/-1;justify-self:center;max-width:480px;width:100%}
+@media(max-width:768px){
+  .cards-grid.cols-2{grid-template-columns:1fr}
+  .cards-grid.cols-2>*:last-child:nth-child(odd){grid-column:auto;justify-self:auto;max-width:none}
+}
+@media(max-width:600px){.cards-section{padding:56px 6%}}
+
+/* ── CARD ─────────────────────────────────────────────────── */
+.card{background:rgba(255,255,255,.03);border:.5px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;transition:transform .3s,box-shadow .3s,border-color .3s}
+.card:hover{transform:translateY(-6px);box-shadow:0 20px 48px rgba(0,0,0,.35);border-color:rgba(196,155,76,.25)}
+.card-body{padding:28px 28px 24px}
+.card-tag{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#C49B4C;border:.5px solid rgba(196,155,76,.35);padding:3px 11px;border-radius:100px;margin-bottom:14px;display:inline-block}
+.card-title{font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600;color:#F5F8FF;line-height:1.2;margin-bottom:14px}
+.card-desc{font-size:14px;font-weight:300;color:rgba(245,248,255,.6);line-height:1.75;margin-bottom:20px;white-space:pre-line}
+.card-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.share-icon-btn{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:transparent;border:1px solid rgba(196,155,76,.5);color:#C49B4C;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;margin-top:2px}
+.share-icon-btn:hover{background:rgba(196,155,76,.12)}
+.share-icon-btn svg{width:15px;height:15px}
+
+/* ── EVENT GALLERY ────────────────────────────────────────── */
+.event-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;height:160px}
+.event-gallery img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ── BUTTONS ──────────────────────────────────────────────── */
+.btn-gold{display:block;background:#C49B4C;color:#091E3A;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:500;letter-spacing:.05em;padding:14px 24px;border-radius:4px;text-decoration:none;text-align:center;transition:background .2s,transform .15s;border:none;cursor:pointer;width:100%}
+.btn-gold:hover{background:#D4AB5C;transform:translateY(-1px)}
+
+/* ── FOOTER ───────────────────────────────────────────────── */
+.footer{background:#060D1A;border-top:.5px solid rgba(196,155,76,.12);padding:60px 48px 0}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px;padding-bottom:48px;border-bottom:.5px solid rgba(255,255,255,.06)}
+.footer-brand{}
+.footer-logo-text{font-family:"Cormorant Garamond",serif;font-size:22px;font-style:italic;color:#C49B4C;margin-bottom:8px}
+.footer-tagline{font-size:13px;font-weight:300;font-style:italic;color:rgba(245,248,255,.35);line-height:1.6}
+.footer-nav h4,.footer-social h4{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,248,255,.35);margin-bottom:16px}
+.footer-nav ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.footer-nav a{font-size:14px;font-weight:300;color:rgba(245,248,255,.55);text-decoration:none;transition:color .2s}
+.footer-nav a:hover{color:#C49B4C}
+.social-links{display:flex;flex-direction:column;gap:12px}
+.social-link{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:300;color:rgba(245,248,255,.55);text-decoration:none;transition:color .2s}
+.social-link:hover{color:#C49B4C}
+.social-icon{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.footer-bottom{padding:24px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.footer-copy{font-size:12px;font-weight:300;color:rgba(245,248,255,.22)}
+@media(max-width:860px){
+  .footer{padding:48px 24px 0}
+  .footer-top{grid-template-columns:1fr 1fr;gap:32px}
+  .footer-brand{grid-column:1/-1}
+}
+@media(max-width:500px){.footer-top{grid-template-columns:1fr}}
+
+/* ── SHARE MODAL ──────────────────────────────────────────── */
+.share-modal-overlay{display:none;position:fixed;inset:0;background:rgba(5,14,30,.85);z-index:9999;align-items:center;justify-content:center;padding:24px}
+.share-modal-overlay.open{display:flex}
+.share-modal{background:#0B2545;border:1px solid rgba(196,155,76,.3);border-radius:8px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;padding:24px;position:relative}
+.share-modal-close{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.08);border:none;color:#F5F8FF;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1}
+.share-modal-close:hover{background:rgba(255,255,255,.16)}
+.share-modal-title{font-size:16px;font-weight:500;color:#F5F8FF;margin:16px 0 4px;text-align:center}
+.share-modal-img{width:100%;border-radius:6px;display:block;margin-top:8px;background:rgba(255,255,255,.05)}
+.share-modal-noflyer{display:none;text-align:center;color:rgba(245,248,255,.6);font-size:13px;line-height:1.5;padding:32px 16px;border:1px dashed rgba(196,155,76,.35);border-radius:6px;margin-top:8px}
+.share-modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.share-action{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:4px;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;border:none;transition:opacity .2s;font-family:"DM Sans",sans-serif}
+.share-action:hover{opacity:.85}
+.share-wa{background:#25D366;color:#06210f}
+.share-download{background:rgba(255,255,255,.08);color:#F5F8FF}
+</style>
+</head>
+<body><nav class="navbar" id="navbar"><a href="index.html" class="nav-logo-text">GEB · INICIATIVAS</a><button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span><span></span><span></span></button><ul class="nav-links" id="navLinks"><li><a href="index.html">Home</a></li><li><a href="bienestar.html">Bienestar Integral</a></li><li><a href="comunidad.html">Impacto Comunitario</a></li><li><a href="movilidad.html">Movilidad Social</a></li><li><a href="habilidades.html">Habilidades para la Vida</a></li><li><a href="eventos.html" class="active">Eventos</a></li></ul></nav><div class="area-page-hero"><div class="area-page-hero-bg" style="background-image:url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1600&q=80');"></div><div class="area-page-hero-overlay"></div><div class="area-page-hero-content"><a href="index.html" class="back-link">← Todas las iniciativas</a><span class="area-label-tag">Momentos GEB</span><h1 class="area-title">Eventos</h1><p class="area-phrase">Revive los momentos que hemos vivido juntos.</p></div></div><section class="cards-section"><div class="cards-grid cols-2">
+
+<div class="card"><div class="event-gallery"><img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&q=80" alt=""><img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=400&q=80" alt=""><img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80" alt=""></div><div class="card-body"><span class="card-tag">Ejemplo — pendiente de datos reales</span><div class="card-title-row"><h3 class="card-title">Nombre del evento</h3><button type="button" class="share-icon-btn" aria-label="Comparte este evento" onclick="openShareModal('ev1','Nombre del evento')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button></div><p class="card-desc">Cuéntame la fecha y una breve descripción de este evento y lo reemplazo por el real.</p><a href="#" target="_blank" class="btn-gold">Ver galería completa</a></div></div>
+
+</div></section><footer class="footer"><div class="footer-top"><div class="footer-brand"><div class="footer-logo-text">GEB · INICIATIVAS</div><p class="footer-tagline">"Aprender con propósito. Crecer desde adentro."</p></div><div class="footer-nav"><h4>Áreas</h4><ul><li><a href="bienestar.html">Bienestar Integral</a></li><li><a href="comunidad.html">Impacto Comunitario</a></li><li><a href="movilidad.html">Movilidad Social</a></li><li><a href="habilidades.html">Habilidades para la Vida</a></li><li><a href="eventos.html">Eventos</a></li></ul></div><div class="footer-social"><h4>Conéctate</h4><div class="social-links"><a href="https://linktr.ee/gebuniversity" target="_blank" class="social-link"><span class="social-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7.953 15.066c-.08.163-.08.324-.08.486.08.517.528.897 1.052.897h2.024V24h2.103v-7.551h2.025c.523 0 .971-.38 1.052-.897.08-.163 0-.324-.08-.486l-3.05-5.58a1.008 1.008 0 0 0-1.762-.08zm8.728-3.251l2.347-2.38a.977.977 0 0 0 .08-1.382.985.985 0 0 0-1.375-.08l-2.347 2.38V7.459a.98.98 0 0 0-.972-.98.98.98 0 0 0-.97.98v2.894l-2.348-2.38a.985.985 0 0 0-1.375.08.977.977 0 0 0 .08 1.381l2.347 2.38H9.08a.98.98 0 0 0-.971.98c0 .543.434.98.971.98h2.023v1.866H9.08a.98.98 0 0 0-.971.98c0 .543.434.98.971.98h2.023V24h1.945v-6.38h2.023a.98.98 0 0 0 .971-.98.98.98 0 0 0-.971-.98h-2.023V13.794h2.023a.98.98 0 0 0 .971-.98.98.98 0 0 0-.971-.98h-3.049z"/></svg></span>Linktree</a><a href="https://whatsapp.com/channel/0029VbBkSBjISTkDvjKCpf2n" target="_blank" class="social-link"><span class="social-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg></span>Canal WhatsApp</a><a href="https://www.youtube.com/@gebuniversity" target="_blank" class="social-link"><span class="social-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span>YouTube</a></div></div></div><div class="footer-bottom"><p class="footer-copy">2025 GEB University · Todos los derechos reservados.</p><p class="footer-copy">Hecho con propósito para nuestros colaboradores.</p></div></footer><div class="share-modal-overlay" id="shareModalOverlay" onclick="if(event.target===this)closeShareModal()"><div class="share-modal"><button type="button" class="share-modal-close" onclick="closeShareModal()" aria-label="Cerrar">✕</button><img class="share-modal-img" id="shareModalImg" src="" alt="Flyer del evento"><div class="share-modal-noflyer" id="shareModalNoFlyer">El flyer de este evento estará disponible muy pronto.</div><div class="share-modal-title" id="shareModalTitle"></div><div class="share-modal-actions"><a class="share-action share-wa" id="shareModalWa" href="#" target="_blank" rel="noopener">WhatsApp</a><a class="share-action share-download" id="shareModalDownload" href="#" download>Descargar</a></div></div></div><script>// ── NAVBAR ──────────────────────────────────────────────────
+const navbar = document.getElementById("navbar");
+const navToggle = document.getElementById("navToggle");
+const navLinks = document.getElementById("navLinks");
+let lastY = 0;
+
+window.addEventListener("scroll", () => {
+  const y = window.scrollY;
+  if (y > 80) {
+    navbar.classList.add("scrolled");
+    if (y > lastY + 8) { navbar.classList.add("hidden"); navbar.classList.remove("visible"); }
+    else if (y < lastY - 4) { navbar.classList.remove("hidden"); navbar.classList.add("visible"); }
+  } else {
+    navbar.classList.remove("scrolled", "hidden", "visible");
+  }
+  lastY = y;
+});
+
+if (navToggle) {
+  navToggle.addEventListener("click", () => {
+    navToggle.classList.toggle("open");
+    navLinks.classList.toggle("open");
+  });
+}
+</script>
+<script>
+function openShareModal(id,title){
+  var img='flyers/'+id+'.png';
+  var pageUrl=window.location.origin+window.location.pathname;
+  var imgUrl=window.location.origin+window.location.pathname.replace(/[^/]*$/,'')+img;
+  var imgEl=document.getElementById('shareModalImg');
+  var noFlyerEl=document.getElementById('shareModalNoFlyer');
+  var waEl=document.getElementById('shareModalWa');
+  var dlEl=document.getElementById('shareModalDownload');
+  document.getElementById('shareModalTitle').textContent=title;
+  imgEl.style.display='';
+  noFlyerEl.style.display='none';
+  dlEl.style.display='';
+  waEl.href='https://wa.me/?text='+encodeURIComponent(title+' — Revívelo con nosotros: '+imgUrl);
+  dlEl.href=img;
+  dlEl.setAttribute('download',title.replace(/\s+/g,'_')+'.png');
+  imgEl.onerror=function(){
+    imgEl.style.display='none';
+    noFlyerEl.style.display='block';
+    dlEl.style.display='none';
+    waEl.href='https://wa.me/?text='+encodeURIComponent(title+' — Revívelo con nosotros: '+pageUrl);
+  };
+  imgEl.src=img;
+  document.getElementById('shareModalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeShareModal(){
+  document.getElementById('shareModalOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeShareModal();});
+</script>
+</body></html>
