@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formación Continua — GEB</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="formacion.css">
+</head>
+<body>
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo-text">GEB · INICIATIVAS</a>
+  <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="bienestar.html">Bienestar Integral</a></li>
+    <li><a href="comunidad.html">Impacto Comunitario</a></li>
+    <li><a href="movilidad.html">Movilidad Social</a></li>
+    <li><a href="habilidades.html">Habilidades para la Vida</a></li>
+    
+    <li><a href="eventos.html">Eventos</a></li>
+  </ul>
+</nav>
+
+<section class="section intro" id="intro">
+  <div class="intro-inner">
+    <span class="label-tag">Formación Continua</span>
+    <h1 class="intro-title">Tú diriges <em>tu aprendizaje</em></h1>
+    <p class="intro-lead">En GEB creemos que las personas crecen mejor cuando son dueñas de su propio camino. Inspirados en los entornos teal, donde la autogestión, la plenitud y el propósito guían el trabajo, la formación continua aquí es <strong>autodirigida y autónoma</strong>: tú decides qué aprender, cuándo y a qué ritmo.</p>
+  </div>
+</section>
+
+<section class="section alt" id="alianzas">
+  <div class="section-head"><span class="label-tag">Curaduría UGEB</span><h2>Grupo Empresarial Bienestar</h2><p>Nuestras alianzas y los cursos que seleccionamos para ti. Toca una para verlos y explorar todo su sitio.</p></div>
+  <div class="groups" id="alliances"></div>
+</section>
+
+
+
+<section class="section" id="sitios">
+  <div class="section-head"><span class="label-tag">Descubre por tu cuenta</span><h2>Otros sitios de interés</h2><p>Hay un mundo por explorar. Estas plataformas abren sus cursos a todas las personas: sigue tu curiosidad y encuentra tu propio camino.</p></div>
+  <div class="bubbles" id="bubbles"></div>
+</section>
+
+<section class="section alt" id="catalogo">
+  <div class="section-head"><h2>Catálogo de cursos</h2><p>Busca por tema o filtra por tema o alianza.</p></div>
+  <div class="chips" id="cats"></div>
+  <div class="filters">
+    <input type="search" id="q" placeholder="Buscar curso o tema…" aria-label="Buscar curso">
+    <select id="fAlianza" aria-label="Alianza"></select>
+    <button class="clear" id="clear" type="button">Limpiar filtros</button>
+  </div>
+  <div class="count" id="count"></div>
+  <div class="grid" id="results"></div>
+</section>
+
+<footer class="footer">
+  <div class="footer-top">
+    <div><div class="footer-logo-text">GEB · INICIATIVAS</div><p class="footer-tagline">"Aprender con propósito. Crecer desde adentro."</p></div>
+    <div><a href="index.html">← Volver a las iniciativas</a></div>
+  </div>
+  <p class="footer-bottom">GEB University · Formación Continua, curada por UGEB.</p>
+</footer>
+
+<script src="formacion-data.js"></script>
+<script src="formacion-ui.js"></script>
+<script>
+const state = { q: "", categoria: "", alianza: "" };
+
+function fillSelect(id, label, values, labeler) {
+  const s = $(id);
+  s.append(new Option(label, ""));
+  values.forEach(v => s.append(new Option(labeler ? labeler(v) : v, v)));
+}
+
+function renderAlliances() {
+  const grid = el("div", "alliances");
+  ALIANZAS.forEach(a => grid.append(allianceTile(a)));
+  $("alliances").replaceChildren(grid);
+}
+
+function matches(c) {
+  const hay = (c.titulo + " " + c.desc + " " + (c.categoria || "") + " " + ((byId[c.alianza] || {}).nombre || "")).toLowerCase();
+  return (!state.q || hay.includes(state.q.toLowerCase()))
+    && (!state.alianza || c.alianza === state.alianza)
+    && (!state.categoria || c.categoria === state.categoria);
+}
+
+function renderCats() {
+  const box = $("cats");
+  box.replaceChildren();
+  ["", ...uniq("categoria")].forEach(cat => {
+    const b = el("button", "cat" + (state.categoria === cat ? " on" : ""), cat || "Todos los temas");
+    b.type = "button";
+    b.onclick = () => { state.categoria = cat; update(); };
+    box.append(b);
+  });
+}
+
+function update() {
+  renderCats();
+  const list = CURSOS.filter(matches);
+  $("count").textContent = list.length + (list.length === 1 ? " curso" : " cursos");
+  const box = $("results");
+  box.replaceChildren();
+  if (!list.length) box.append(el("p", "empty", "No encontramos cursos con esos filtros."));
+  list.forEach(c => box.append(courseCard(c)));
+}
+
+fillSelect("fAlianza", "Todas las alianzas", ALIANZAS.map(a => a.id), id => byId[id].nombre);
+
+$("q").oninput = e => { state.q = e.target.value; update(); };
+[["fAlianza", "alianza"]].forEach(([id, k]) =>
+  $(id).onchange = e => { state[k] = e.target.value; update(); });
+$("clear").onclick = () => {
+  Object.keys(state).forEach(k => state[k] = "");
+  $("q").value = "";
+  ["fAlianza"].forEach(id => $(id).value = "");
+  update();
+};
+function renderSitios() {
+  const box = $("bubbles");
+  SITIOS.forEach(s => {
+    const a = el("a", "bubble");
+    a.href = s.url; a.target = "_blank"; a.rel = "noopener";
+    a.style.setProperty("--c", s.color);
+    const ring = el("span", "bubble-ring");
+    const img = el("img");
+    img.alt = "";
+    img.src = s.logo || "https://www.google.com/s2/favicons?domain=" + s.dominio + "&sz=128";
+    img.onerror = () => { img.remove(); ring.append(el("b", "", s.nombre[0])); };
+    ring.append(img);
+    a.append(ring, el("span", "bubble-name", s.nombre));
+    box.append(a);
+  });
+}
+renderAlliances();
+renderSitios();
+update();
+initChrome();
+</script>
+</body>
+</html>
